@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class DeplacementPersoSaut : MonoBehaviour
@@ -13,6 +14,7 @@ public class DeplacementPersoSaut : MonoBehaviour
 
    void Start()
    {
+
       Cursor.lockState = CursorLockMode.Locked;
    }
 
@@ -26,32 +28,52 @@ public class DeplacementPersoSaut : MonoBehaviour
       // On ajuste la paramètre booléen en fonction du spherecast (auSol ou non)
       GetComponent<Animator>().SetBool("animSaut", !auSol);
 
-      float laVitesse = Input.GetAxis("Vertical") * vitesseDeplace;
+      // Récupération de l'axe vertical (-1 et 1) qu'on multiplie par une vitesse de déplacement
+      float laVitesseV = Input.GetAxis("Vertical") * vitesseDeplace;
+      float laVitesseH = Input.GetAxis("Horizontal") * vitesseDeplace;
+      
       float velociteY = GetComponent<Rigidbody>().linearVelocity.y;
-
-      if (Input.GetKey(KeyCode.LeftShift))
+      // Récupération de l'axe Horizontal (-1 et 1) qu'on multiplie par une vitesse de déplacement
+    
+        if (Input.GetKey(KeyCode.LeftShift))
       {
-         laVitesse *= 2;
-      }
+         laVitesseV *= 2;
+           laVitesseH *= 2;
+        }
 
       // Gestion du saut. Si la touche espace est enfoncée et que le personnage a les
-   // pieds au sol, on applique une force verticale vers le haut
+      // pieds au sol, on applique une force verticale vers le haut
       if (Input.GetKeyDown(KeyCode.Space) && auSol)
       {
          velociteY += forceSaut;
       }
 
-      // Déplacement du personnage, seulement s'il a les pieds au sol
-      if (auSol)
+        Vector3 vitesseTotale = new Vector3(laVitesseH, 0f, laVitesseV);
+
+        vitesseTotale = vitesseTotale.normalized * vitesseDeplace;
+
+        // Déplacement du personnage, seulement s'il a les pieds au sol
+        if (auSol)
       {
-         GetComponent<Rigidbody>().linearVelocity = transform.forward * laVitesse + new Vector3(0f, velociteY, 0f);
-      }
+          
+
+            GetComponent<Rigidbody>().linearVelocity = transform.forward * vitesseTotale.z + transform.right * vitesseTotale.x + new Vector3(0f, velociteY, 0f);
+        }
+        // Emplification de la vitesse de chute si le personnage est en l'air
+        else if (!auSol){
+            velociteY += Physics.gravity.y * Time.deltaTime - 0.01f;
+            GetComponent<Rigidbody>().linearVelocity = new Vector3(GetComponent<Rigidbody>().linearVelocity.x, velociteY, GetComponent<Rigidbody>().linearVelocity.z);
+        }
+
+       
 
 
 
-      GetComponent<Animator>().SetFloat("vitesseDeplacement", Mathf.Abs(laVitesse));
-
-      transform.Rotate(0f, Input.GetAxis("Mouse X") * vitesseTourne, 0f);
+        GetComponent<Animator>().SetFloat("vitesseDevantDeplacement", Mathf.Abs(vitesseTotale.z));
+        GetComponent<Animator>().SetFloat("vitesseCoterDeplacement", Mathf.Abs(vitesseTotale.x));
+        GetComponent<Animator>().SetFloat("VitesseTotale", Mathf.Abs(vitesseTotale.magnitude));
+        
+         transform.Rotate(0f, Input.GetAxis("Mouse X") * vitesseTourne, 0f);
 
 
 
