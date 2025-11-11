@@ -122,13 +122,6 @@ public class DeplacementPersoSaut : MonoBehaviour
 
       transform.Rotate(0f, Input.GetAxis("Mouse X") * vitesseTourne, 0f);
 
-      // Tire du joueur
-   if (Input.GetButtonDown("Fire1") && auSol)
-   {
-      ShootProjectile();
-   }
-   }
-
    private void UpdateStaminaBar()
    {
       // Par défaut, la barre de stamina n'est pas display, si le joueur ne sprint pas et quelle est pleine à 100%
@@ -159,18 +152,6 @@ public class DeplacementPersoSaut : MonoBehaviour
       {
          staminaBar.color = Color.black;
       }
-   }
-   
-   private void ShootProjectile()
-   {
-      // Instancier le projectile à la position du personnage à partir du Firepoint
-      Vector3 spawnPosition = Firepoint.position;
-      GameObject projectile = Instantiate(ProjectilePrefab, spawnPosition, Quaternion.identity);
-
-      // Donner une vitesse au projectile dans la direction où la camera de la 1er personne regarde
-      Rigidbody projectileRb = projectile.GetComponent<Rigidbody>();
-      float projectileSpeed = 50f;
-      projectileRb.linearVelocity = Firepoint.forward * projectileSpeed;
    }
 
    // Jouer l'animation de mort de personnage après avoir toucher un objet ayant le tag "DeathPoint"

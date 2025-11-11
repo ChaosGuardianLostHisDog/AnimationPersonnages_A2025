@@ -6,7 +6,7 @@ public class KillableCube : MonoBehaviour
     {                       
         if (other.gameObject.CompareTag("ProjectilePlayer"))
         {
-            //le cube se détruit en entrant en collision avec les tires du joueurs
+            //le monstre se détruit en entrant en collision avec les tires du joueurs
             Destroy(gameObject);
         }
     } 

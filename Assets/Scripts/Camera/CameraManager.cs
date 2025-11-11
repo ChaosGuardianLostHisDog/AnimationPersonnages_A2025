@@ -6,6 +6,7 @@ public class CameraManager : MonoBehaviour
     [SerializeField] private GameObject ThirdPersonCamera;
     [SerializeField] private GameObject DeathAngleCamera;
     [SerializeField] private GameObject PlayerBody;
+    public static bool isFirstPersonCamera = true;
 
     // Update is called once per frame
     void Update()
@@ -23,11 +24,13 @@ public class CameraManager : MonoBehaviour
         {
             ThirdPersonCamera.SetActive(false);
             PlayerBody.SetActive(false);
+             isFirstPersonCamera = true;
         }
         else if (laCamera == ThirdPersonCamera)
         {
             FirstPersonCamera.SetActive(false);
             PlayerBody.SetActive(true);
+            isFirstPersonCamera = false;
         }
         laCamera.SetActive(true);
     }
