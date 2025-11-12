@@ -19,9 +19,9 @@ public class TopSpawner : MonoBehaviour
         int randomIndex = Random.Range(0, prefabToSpawn.Length);
 
         Vector3 randomSpawnPosition = new Vector3(
-            Random.Range(-20f, 20f),
-            30f,
-            Random.Range(-20f, 20f)
+            Random.Range(-5f, 5f),
+            1f,
+            Random.Range(-5f, 5f)
         );
         Instantiate(prefabToSpawn[randomIndex], randomSpawnPosition, Quaternion.identity);
     }

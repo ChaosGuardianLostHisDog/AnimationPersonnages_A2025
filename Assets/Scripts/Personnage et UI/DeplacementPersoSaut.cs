@@ -58,6 +58,11 @@ public class DeplacementPersoSaut : MonoBehaviour
       // Gestion de la course (Grandement inspiré de votre gestion de votre script d'essence durant les exercices d'hélico)
       bool veutSprinter = Input.GetKey(KeyCode.LeftShift) && sprintCooldownTimer <= 0f;
 
+      if (Input.GetKey(KeyCode.P))
+        {
+            DebugRestart();
+        }
+
       // Gestion de la stamina
       if (veutSprinter && BarreStamina > 0f && (laVitesseV != 0 || laVitesseH != 0))
       {
@@ -121,6 +126,7 @@ public class DeplacementPersoSaut : MonoBehaviour
       }
 
       transform.Rotate(0f, Input.GetAxis("Mouse X") * vitesseTourne, 0f);
+   }
 
    private void UpdateStaminaBar()
    {
@@ -183,6 +189,11 @@ public class DeplacementPersoSaut : MonoBehaviour
 
       // recharger la scène après 5 secondes
       yield return new WaitForSeconds(5f);
+      UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
+   }
+
+   private void DebugRestart()
+   {
       UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
    }
 }

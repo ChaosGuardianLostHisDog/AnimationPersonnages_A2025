@@ -1,16 +1,28 @@
 using UnityEngine;
+using TMPro;
 
 public class StatsJoueur : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    [Header("Stats Joueur")]
+    public float nombreMunition = 10;
+    public float nombreMunitionMax = 50;
+
+    [Header("Composants UI")]
+    [SerializeField] private TMP_Text MunitionAfficheur;
+    [SerializeField] private TMP_Text MunitionAfficheurMax;
+
     void Start()
     {
-        
+        MettreAJourAffichageMunition();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void MettreAJourAffichageMunition()
     {
-        
+        if (MunitionAfficheur != null)
+            MunitionAfficheur.text = nombreMunition.ToString();
+
+        if (MunitionAfficheurMax != null)
+            MunitionAfficheurMax.text = "/" + nombreMunitionMax.ToString();
     }
 }
+

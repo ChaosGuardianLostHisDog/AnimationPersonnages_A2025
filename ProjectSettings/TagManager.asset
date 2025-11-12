@@ -4,11 +4,10 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Plateforme
   - DeathPoint
   - DeathNDestroy
   - ProjectilePlayer
-  - PlayerProjectile
+  - MeleePlayer
   layers:
   - Default
   - TransparentFX

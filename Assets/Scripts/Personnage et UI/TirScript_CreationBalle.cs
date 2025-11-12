@@ -7,19 +7,26 @@ public class TirScript_CreationBalle : MonoBehaviour
     /*#################################################
    -- variables publiques à définir dans l'inspecteur
    #################################################*/
+   [Header("Composant de tir")]
     public GameObject balle; // Référence au gameObject de la balle (préfab)
     public GameObject particuleBalle; // Référence au gameObject à activer lorsque le personnage tir
     public float vitesseBalle; // Vitesse de la balle
 
     [SerializeField] private Transform Firepoint;
     [SerializeField] private float spawnOffset = 0.5f; // distance devant la caméra/firepoint
-
     [SerializeField] private AudioClip gunShotAudioSource; // Référence à la source audio pour le son de tir
-
+    [SerializeField] private StatsJoueur statsJoueur;
     /*#################################################
    -- variables privées
    #################################################*/
     private bool peutTirer; // Est-ce que le personnage peut tirer
+
+    [Header("Composant de Melee")]
+    public GameObject meleeWeapon; // Référence à l'arme de mêlée
+    public Animator joueurAnimator;         // L’Animator du joueur
+    public float dureeAttaqueMelee = 1f;  // Durée pendant laquelle l’arme est active
+    private bool peutAttaquer = true;
+    
 
     //----------------------------------------------------------------------------------------------
     void Start()
@@ -35,9 +42,14 @@ public class TirScript_CreationBalle : MonoBehaviour
      */
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Mouse0) && peutTirer)
+        if (Input.GetKeyDown(KeyCode.Mouse0) && peutTirer == true && peutAttaquer == true && statsJoueur.nombreMunition > 0)
         {
             Tir();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Mouse1) && peutTirer == true && peutAttaquer == true)
+        {
+            StartCoroutine(MeleeAttack());
         }
     }
     //----------------------------------------------------------------------------------------------
@@ -72,7 +84,10 @@ public class TirScript_CreationBalle : MonoBehaviour
 
             Rigidbody rb = balleCopie.GetComponent<Rigidbody>();
             rb.linearVelocity = direction * vitesseBalle;
-        }else if (CameraManager.isFirstPersonCamera == false)
+
+
+        }
+        else if (CameraManager.isFirstPersonCamera == false)
         {
             particuleBalle.SetActive(true);
             GetComponent<AudioSource>().PlayOneShot(gunShotAudioSource);
@@ -84,7 +99,8 @@ public class TirScript_CreationBalle : MonoBehaviour
         }
 
 
-
+        statsJoueur.nombreMunition--;
+        statsJoueur.MettreAJourAffichageMunition();
     }
     //----------------------------------------------------------------------------------------------
 
@@ -98,5 +114,21 @@ public class TirScript_CreationBalle : MonoBehaviour
         peutTirer = true;
         if (particuleBalle != null)
             particuleBalle.SetActive(false);
+    }
+
+    IEnumerator MeleeAttack()
+    {
+        peutAttaquer = false;
+
+        // Déclenche l'animation d'attaque
+        joueurAnimator.SetTrigger("MeleeTrigger");
+
+        // Active l’arme
+        meleeWeapon.SetActive(true);
+
+        // délai
+        yield return new WaitForSeconds(1f);
+        meleeWeapon.SetActive(false);
+        peutAttaquer = true;
     }
 }       
