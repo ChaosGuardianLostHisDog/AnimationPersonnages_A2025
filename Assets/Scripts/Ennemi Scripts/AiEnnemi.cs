@@ -7,9 +7,12 @@ public class AiEnnemi : MonoBehaviour
     public float lookRadius = 10f;
     Transform target;
     NavMeshAgent agent;
+    Animator anim;
+    bool isWalking = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         target = PlayerManager.instance.player.transform;
     }
@@ -22,12 +25,22 @@ public class AiEnnemi : MonoBehaviour
         if (distance <= lookRadius)
         {
             agent.SetDestination(target.position);
+            // Jouer l'animation du monstre qui cours ver le joueur
+            if (!isWalking)
+            {
+                anim.SetBool("isRunning", true);
+            }else
+            {
+                anim.SetBool("isRunning", false);
+            }
 
             if (distance <= agent.stoppingDistance)
             {
                 // Attaquer le joueur
                 // Regarder le joueur
                 FaceTarget();
+                anim.SetTrigger("attackTrigger");
+
             }
         }
     }

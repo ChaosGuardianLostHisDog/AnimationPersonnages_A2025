@@ -24,11 +24,9 @@ public class KillableCube : MonoBehaviour
         {
 
             HpMonstre.VieEnnemi -= 20;
-            rb.linearVelocity = -transform.forward * 50f + Vector3.up * 2f;
-
             //Le monstre prend du knockback, il est repoussé en arrière lorsqu'il est touché par l'attaque au corps à corps du joueur
-            
-            rb.linearVelocity = -transform.forward * 50f + Vector3.up * 2f;
+            rb.linearVelocity = -transform.forward * 10f + Vector3.up * 2f;
+
             if (HpMonstre.VieEnnemi <= 0)
             {
                 Destroy(gameObject);
