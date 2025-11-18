@@ -163,7 +163,8 @@ public class DeplacementPersoSaut : MonoBehaviour
    // Jouer l'animation de mort de personnage après avoir toucher un objet ayant le tag "DeathPoint"
    private void OnCollisionEnter(Collision other)
    {
-      if (other.gameObject.CompareTag("DeathPoint") || other.gameObject.CompareTag("DeathNDestroy"))
+    Debug.Log("Collision avec : " + other.collider.name);
+        if (other.collider.CompareTag("DeathPoint") || other.collider.CompareTag("DeathNDestroy"))
       {
          anim.SetBool("animMort", true);
          // instancier l'explosion à la position du personnage
@@ -172,7 +173,7 @@ public class DeplacementPersoSaut : MonoBehaviour
          StartCoroutine(ResetAnimMort());
       }
    }
-
+    
    private IEnumerator ResetAnimMort()
    {
       yield return new WaitForSeconds(0.05f);
