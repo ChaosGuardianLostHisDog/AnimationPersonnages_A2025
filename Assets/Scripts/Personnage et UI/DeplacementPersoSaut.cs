@@ -10,32 +10,48 @@ public class DeplacementPersoSaut : MonoBehaviour
 {
    [Header("Composants")]
    [SerializeField] private GameObject explosionDeath;
+   [SerializeField] private UnityEngine.UI.Image HPBar;
+   [SerializeField] private UnityEngine.UI.Image ScreenBloodOverlay;
    [SerializeField] private UnityEngine.UI.Image staminaBar;
    [SerializeField] private GameObject ProjectilePrefab;
    [SerializeField] private Transform Firepoint;
 
+   [Header("Stats Joueur")]
+   public float VieJoueurMax = 100f;
+   public float VieJoueur = 100;
+   public float DegatJoueurMelee;
+   public float DegatJoueurDistance;
+
    [Header("Mouvement")]
-    public float vitesseDeplace = 6f;
-    public float vitesseTourne = 2f;
-    public float forceSaut = 7f;
-    
-    [Header("Stamina")]
-    public float BarreStaminaMax = 100f;
-    public float BarreStamina = 100f;
-    public float staminaPerteParSeconde = 20f;   // Vitesse de perte
-    public float staminaRegenParSeconde = 15f;   // Vitesse de régénération
-    public float sprintCooldown = 7.5f;          // Temps avant de pouvoir resprinter après épuisement (Ceci est un pénalité pour avoir consommer toute la stamina)
-    [SerializeField] float sprintCooldownTimer = 0f;
+   public float vitesseDeplace;
+   public float vitesseTourne;
+   public float forceSaut;
+
+   [Header("Stamina")]
+   public float BarreStaminaMax = 100f;
+   public float BarreStamina = 100f;
+   public float staminaPerteParSeconde = 20f;   // Vitesse de perte
+   public float staminaRegenParSeconde = 15f;   // Vitesse de régénération
+   public float sprintCooldown = 7.5f;          // Temps avant de pouvoir resprinter après épuisement (Ceci est un pénalité pour avoir consommer toute la stamina)
+   [SerializeField] float sprintCooldownTimer = 0f;
    private bool auSol; // est-ce que le personnage a les pieds au sol
    private Rigidbody rb;
    private Animator anim;
+   public AudioSource audioSource;
+   public int idleDelayRange;
+   public AudioClip[] SonDegat;
+   Collider col;
 
    void Start()
    {
       rb = GetComponent<Rigidbody>();
       anim = GetComponent<Animator>();
+      col = GetComponent<Collider>();
+      audioSource = GetComponent<AudioSource>();
 
       Cursor.lockState = CursorLockMode.Locked;
+
+      SetBloodOverlayAlpha(0f);
    }
 
    // Update is called once per frame
@@ -59,9 +75,9 @@ public class DeplacementPersoSaut : MonoBehaviour
       bool veutSprinter = Input.GetKey(KeyCode.LeftShift) && sprintCooldownTimer <= 0f;
 
       if (Input.GetKey(KeyCode.P))
-        {
-            DebugRestart();
-        }
+      {
+         DebugRestart();
+      }
 
       // Gestion de la stamina
       if (veutSprinter && BarreStamina > 0f && (laVitesseV != 0 || laVitesseH != 0))
@@ -117,7 +133,8 @@ public class DeplacementPersoSaut : MonoBehaviour
       {
          // Amplification de la vitesse de chute si le personnage est en l'air
          velociteY += Physics.gravity.y * Time.deltaTime - 0.025f;
-         rb.linearVelocity = new Vector3(rb.linearVelocity.x, velociteY, rb.linearVelocity.z);
+         rb.linearVelocity = transform.forward * vitesseTotale.z + transform.right * vitesseTotale.x + new Vector3(0f, velociteY, 0f);
+
 
          // Important : mettre les paramètres de déplacement à zéro en l'air pour que l'anim de saut puisse s'afficher
          anim.SetFloat("vitesseDevantDeplacement", 0f);
@@ -161,19 +178,67 @@ public class DeplacementPersoSaut : MonoBehaviour
    }
 
    // Jouer l'animation de mort de personnage après avoir toucher un objet ayant le tag "DeathPoint"
-   private void OnCollisionEnter(Collision other)
+   public void MiseAJourDeLaVieDuJoueur(float degats)
    {
-    Debug.Log("Collision avec : " + other.collider.name);
-        if (other.collider.CompareTag("DeathPoint") || other.collider.CompareTag("DeathNDestroy"))
-      {
-         anim.SetBool("animMort", true);
-         // instancier l'explosion à la position du personnage
-         explosionDeath.SetActive(true);
-         // après deux secondes setbool animMort à false pour réinitialiser l'animation
-         StartCoroutine(ResetAnimMort());
-      }
+       AppliquerSonDamage();
+
+       VieJoueur -= degats;
+       VieJoueur = Mathf.Clamp(VieJoueur, 0f, VieJoueurMax);
+
+       // Calculer alpha : 0 = full life, 1 = zero life
+       float alpha = 1f - (VieJoueur / VieJoueurMax);
+       alpha = Mathf.Clamp01(alpha);
+
+       SetBloodOverlayAlpha(alpha);
+       // Mettre à jour la barre de vie (fillAmount de 0 à 1)
+      UpdateHPBar();
+
+       if (VieJoueur <= 0)
+       {
+           SetBloodOverlayAlpha(0f);
+           anim.SetBool("animMort", true);
+           explosionDeath.SetActive(true);
+           StartCoroutine(ResetAnimMort());
+       }
    }
-    
+
+   private void SetBloodOverlayAlpha(float alpha)
+   {
+       alpha = Mathf.Clamp01(alpha);
+       // Le parent prend directement l’alpha donné
+       Color parentColor = ScreenBloodOverlay.color;
+       parentColor.a = alpha;
+       ScreenBloodOverlay.color = parentColor;
+       // Enfants deviennent opaques seulement à partir de 50%
+       float childAlpha = 0f;
+       if (alpha > 0.5f)
+       {
+           childAlpha = (alpha - 0.5f) / 0.5f;
+       }
+       var images = ScreenBloodOverlay.GetComponentsInChildren<UnityEngine.UI.Image>(includeInactive: true);
+       foreach (var img in images)
+       {
+           if (img == ScreenBloodOverlay) continue; // éviter de modifier le parent 2x
+           Color c = img.color;
+           c.a = childAlpha;
+           img.color = c;
+       }
+   }
+
+   private void UpdateHPBar()
+   {
+       float fill = VieJoueur / VieJoueurMax;
+       fill = Mathf.Clamp01(fill);
+       HPBar.fillAmount = fill;
+
+       // Optionnel : changer la couleur en bas de vie
+       if (fill > 0.75f)
+           HPBar.color = Color.green;
+       else if (fill > 0.3f)
+           HPBar.color = Color.yellow;
+       else
+           HPBar.color = Color.red;
+   }
    private IEnumerator ResetAnimMort()
    {
       yield return new WaitForSeconds(0.05f);
@@ -183,15 +248,24 @@ public class DeplacementPersoSaut : MonoBehaviour
 
       // désactiver le script de déplacement
       this.enabled = false;
-
       // Activer la caméra de mort via le CameraManager
-      CameraManager cameraManager = FindObjectOfType<CameraManager>();
+      CameraManager cameraManager = FindFirstObjectByType<CameraManager>();
       cameraManager.ActivateDeathCamera();
 
       // recharger la scène après 5 secondes
-      yield return new WaitForSeconds(5f);
+      yield return new WaitForSeconds(3f);
       UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
    }
+
+   public void AppliquerSonDamage()
+    {
+        if (SonDegat.Length > 0)
+        {
+            int index = Random.Range(0, SonDegat.Length);
+            audioSource.pitch = 1f;
+            audioSource.PlayOneShot(SonDegat[index]);
+        }
+    }
 
    private void DebugRestart()
    {

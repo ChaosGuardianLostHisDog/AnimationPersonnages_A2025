@@ -13,7 +13,7 @@ public class TirScript_CreationBalle : MonoBehaviour
     public float vitesseBalle; // Vitesse de la balle
 
     [SerializeField] private Transform Firepoint;
-    [SerializeField] private float spawnOffset = 0.5f; // distance devant la caméra/firepoint
+    [SerializeField] private float spawnOffset = 5f; // distance devant la caméra/firepoint
     [SerializeField] private AudioClip gunShotAudioSource; // Référence à la source audio pour le son de tir
     [SerializeField] private StatsJoueur statsJoueur;
     /*#################################################
