@@ -7,7 +7,7 @@ public class TirScript_CreationBalle : MonoBehaviour
     /*#################################################
    -- variables publiques à définir dans l'inspecteur
    #################################################*/
-   [Header("Composant de tir")]
+    [Header("Composant de tir")]
     public GameObject balle; // Référence au gameObject de la balle (préfab)
     public GameObject particuleBalle; // Référence au gameObject à activer lorsque le personnage tir
     public float vitesseBalle; // Vitesse de la balle
@@ -16,6 +16,7 @@ public class TirScript_CreationBalle : MonoBehaviour
     [SerializeField] private float spawnOffset = 5f; // distance devant la caméra/firepoint
     [SerializeField] private AudioClip gunShotAudioSource; // Référence à la source audio pour le son de tir
     [SerializeField] private StatsJoueur statsJoueur;
+    [SerializeField] private LayerMask layerCollision;
     /*#################################################
    -- variables privées
    #################################################*/
@@ -26,7 +27,8 @@ public class TirScript_CreationBalle : MonoBehaviour
     public Animator joueurAnimator;         // L’Animator du joueur
     public float dureeAttaqueMelee = 1f;  // Durée pendant laquelle l’arme est active
     private bool peutAttaquer = true;
-    
+
+
 
     //----------------------------------------------------------------------------------------------
     void Start()
@@ -84,6 +86,23 @@ public class TirScript_CreationBalle : MonoBehaviour
 
             Rigidbody rb = balleCopie.GetComponent<Rigidbody>();
             rb.linearVelocity = direction * vitesseBalle;
+
+            RaycastHit hit;
+            //Debug.Break();
+            if (Physics.SphereCast(spawnBase.position, 5f, transform.forward, out hit, 5f, layerCollision))
+            {
+                print(hit.collider.name);
+               
+                    print("dans la ligne du joueur");
+
+                GameObject squelette = hit.collider.gameObject.transform.root.gameObject;
+                print(squelette.name);
+
+
+                squelette.GetComponent<AiSkeletonWarrior>().BlockProjectileJoueur();
+                    
+      
+            }
 
 
         }

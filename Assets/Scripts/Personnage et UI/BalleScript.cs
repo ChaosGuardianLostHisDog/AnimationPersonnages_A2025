@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class BalleScript : MonoBehaviour
 {
+
+    private void Update()
+    {
+       
+    }
     //Script à associer à la balle
 
     /*#################################################

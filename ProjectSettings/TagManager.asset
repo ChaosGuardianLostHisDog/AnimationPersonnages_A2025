@@ -8,7 +8,7 @@ TagManager:
   - ProjectilePlayer
   - MeleePlayer
   - Shield
-  - Undefined
+  - SkeletonWarrior
   layers:
   - Default
   - TransparentFX
@@ -16,7 +16,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - skeletonwarrior
   - 
   - 
   - 

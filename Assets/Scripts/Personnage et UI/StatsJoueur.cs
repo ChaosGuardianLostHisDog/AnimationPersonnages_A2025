@@ -4,8 +4,8 @@ using TMPro;
 public class StatsJoueur : MonoBehaviour
 {
     [Header("Stats Joueur")]
-    public float nombreMunition = 10;
-    public float nombreMunitionMax = 50;
+    public float nombreMunition = 1000;
+    public float nombreMunitionMax = 111150;
 
     [Header("Composants UI")]
     [SerializeField] private TMP_Text MunitionAfficheur;

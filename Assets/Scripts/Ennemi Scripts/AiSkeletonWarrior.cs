@@ -134,6 +134,11 @@ public class AiSkeletonWarrior : MonoBehaviour, IGestion2Degats
         anim.SetTrigger(triggerName);
     }
 
+    public void BlockProjectileJoueur()
+    {
+               print("Projectile Bloqué ! FDP");
+    }
+
     public void MouvementStop()
     {
         Debug.Log("Attaque Effectuer !");
