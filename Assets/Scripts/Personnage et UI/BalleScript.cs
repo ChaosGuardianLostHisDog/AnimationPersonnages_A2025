@@ -4,39 +4,81 @@ using UnityEngine;
 
 public class BalleScript : MonoBehaviour
 {
+    [Header("Impact")]
+    public GameObject impactTir;     
+    public GameObject personnage;    
+
+    [Header("SphereCast Detection")]
+    public float sphereRadius;        
+    public float detectionDistance;     
+    public LayerMask detectLayerMask;        
+    public bool debugSphereCast = false;     
+
+    private Rigidbody rb;
+
+    private void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+    }
 
     private void Update()
     {
-       
+        DetectWithSphereCast();
     }
-    //Script à associer à la balle
 
-    /*#################################################
-    -- variables publiques à définir dans l'inspecteur
-    #################################################*/
-    public GameObject impactTir; // Référence au Prefab à instancier lorsque le tir frappe un objet. (Prefab ParticulesHit)
-    public GameObject personnage; // Référence au personnage
+    private void DetectWithSphereCast()
+    {
+        if (rb == null) return;
 
-    /*
-     * Fonction OnCollisionEnter. Gère ce qui se passe lorsqu'une balle touche un objet.
-     */
+        // Direction de déplacement de la balle
+        Vector3 direction = rb.linearVelocity.normalized;
+
+        // DEBUG : dessine la sphère
+        if (debugSphereCast)
+        {
+            Debug.DrawRay(transform.position, direction * detectionDistance, Color.yellow);
+        }
+
+        // Raycast
+        RaycastHit hit;
+        if (Physics.SphereCast(transform.position, sphereRadius, direction, out hit, detectionDistance, detectLayerMask))
+        {
+            GameObject root = hit.collider.transform.root.gameObject;
+
+            AiSkeletonWarrior warrior = root.GetComponent<AiSkeletonWarrior>();
+            if (warrior != null)
+            {
+                // Appelle la fonction de blocage AVANT l’impact
+                warrior.BlockProjectileJoueur();
+            }
+        }
+    }
+
     private void OnCollisionEnter(Collision infoCollisions)
     {
-        /* --> Partie à compléter
-         * 1. Création d'une copie de l'objet de particules particulesContact
-         * 2. On place l'objet copié au point de contact de la collison
-         * 3. On active l'objet copié
-         * 4. On oriente l'objet copié vers le personnage (LookAt)
-         * 5. On applique une légère correction de position pour éviter que les particules se retouvent derrère l'objet
-         * 5. On détruit l'objet copié (particules de fumée) après un délai d'une seconde.
-         * 6. On détruit la balle (immédiatement)
-         */
-        GameObject particulesCopie = Instantiate(impactTir);
-        particulesCopie.transform.position = infoCollisions.contacts[0].point;
-        particulesCopie.SetActive(true);
-        particulesCopie.transform.LookAt(personnage.transform);
-        particulesCopie.transform.Translate(0, 0, 0.2f);
-        Destroy(particulesCopie, 1f);
+        // Effets d’impact
+        if (impactTir != null)
+        {
+            GameObject particulesCopie = Instantiate(impactTir);
+            particulesCopie.transform.position = infoCollisions.contacts[0].point;
+            particulesCopie.SetActive(true);
+
+            if (personnage != null)
+                particulesCopie.transform.LookAt(personnage.transform);
+
+            particulesCopie.transform.Translate(0, 0, 0.2f, Space.Self);
+
+            Destroy(particulesCopie, 1f);
+        }
+
         Destroy(gameObject);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!debugSphereCast) return;
+
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, sphereRadius);
     }
 }

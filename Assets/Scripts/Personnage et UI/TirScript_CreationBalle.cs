@@ -5,111 +5,75 @@ using UnityEngine;
 public class TirScript_CreationBalle : MonoBehaviour
 {
     /*#################################################
-   -- variables publiques à définir dans l'inspecteur
-   #################################################*/
+    -- variables publiques à définir dans l'inspecteur
+    #################################################*/
     [Header("Composant de tir")]
-    public GameObject balle; // Référence au gameObject de la balle (préfab)
-    public GameObject particuleBalle; // Référence au gameObject à activer lorsque le personnage tir
-    public float vitesseBalle; // Vitesse de la balle
+    public GameObject balle;
+    public GameObject particuleBalle;
+    public float vitesseBalle;
 
     [SerializeField] private Transform Firepoint;
-    [SerializeField] private float spawnOffset = 5f; // distance devant la caméra/firepoint
-    [SerializeField] private AudioClip gunShotAudioSource; // Référence à la source audio pour le son de tir
+    [SerializeField] private float spawnOffset = 5f;
+    [SerializeField] private AudioClip gunShotAudioSource;
     [SerializeField] private StatsJoueur statsJoueur;
-    [SerializeField] private LayerMask layerCollision;
-    /*#################################################
-   -- variables privées
-   #################################################*/
-    private bool peutTirer; // Est-ce que le personnage peut tirer
+
+    private bool peutTirer;
 
     [Header("Composant de Melee")]
-    public GameObject meleeWeapon; // Référence à l'arme de mêlée
-    public Animator joueurAnimator;         // L’Animator du joueur
-    public float dureeAttaqueMelee = 1f;  // Durée pendant laquelle l’arme est active
+    public GameObject meleeWeapon;
+    public Animator joueurAnimator;
+    public float dureeAttaqueMelee = 1f;
     private bool peutAttaquer = true;
 
-
+    private Transform lastSpawnBase;   // pour le debug gizmos
 
     //----------------------------------------------------------------------------------------------
     void Start()
     {
-        peutTirer = true; // Au départ, on veut que le personnage puisse tirer
+        peutTirer = true;
     }
     //----------------------------------------------------------------------------------------------
 
-
-    /*
-     * Fonction Update. On appele la fonction Tir() lorsque la touche souris gauche est enfoncée et que 
-     * le personnage peut tirer
-     */
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Mouse0) && peutTirer == true && peutAttaquer == true && statsJoueur.nombreMunition > 0)
+        if (Input.GetKeyDown(KeyCode.Mouse0) && peutTirer && peutAttaquer && statsJoueur.nombreMunition > 0)
         {
             Tir();
         }
 
-        if (Input.GetKeyDown(KeyCode.Mouse1) && peutTirer == true && peutAttaquer == true)
+        if (Input.GetKeyDown(KeyCode.Mouse1) && peutTirer && peutAttaquer)
         {
             StartCoroutine(MeleeAttack());
         }
     }
     //----------------------------------------------------------------------------------------------
 
-
-    /*
-     * Fonction Tir. Gère le tir d'une nouvelle balle.
-     */
     void Tir()
     {
-        /* On désactive la capacité de tirer et on appelle la fonction ActiveTir() après
-         un délai de 0.1 seconde */
         peutTirer = false;
         Invoke("ActiveTir", 0.1f);
 
-        // Vérification si la caméra active est en vue à la première personne
-
         if (CameraManager.isFirstPersonCamera == true)
         {
-            // Effets son et particule
             particuleBalle.SetActive(true);
             GetComponent<AudioSource>().PlayOneShot(gunShotAudioSource);
 
-            // Choix du point d'apparition : Firepoint > Camera.main > this.transform
             Transform spawnBase = Firepoint != null ? Firepoint : (Camera.main != null ? Camera.main.transform : transform);
+            lastSpawnBase = spawnBase; // pour afficher les gizmos
+
             Vector3 direction = spawnBase.forward;
             Vector3 spawnPos = spawnBase.position + direction * spawnOffset;
             Quaternion spawnRot = spawnBase.rotation;
             GameObject balleCopie = Instantiate(balle, spawnPos, spawnRot);
 
             balleCopie.SetActive(true);
-
-            Rigidbody rb = balleCopie.GetComponent<Rigidbody>();
-            rb.linearVelocity = direction * vitesseBalle;
-
-            RaycastHit hit;
-            //Debug.Break();
-            if (Physics.SphereCast(spawnBase.position, 5f, transform.forward, out hit, 5f, layerCollision))
-            {
-                print(hit.collider.name);
-               
-                    print("dans la ligne du joueur");
-
-                GameObject squelette = hit.collider.gameObject.transform.root.gameObject;
-                print(squelette.name);
-
-
-                squelette.GetComponent<AiSkeletonWarrior>().BlockProjectileJoueur();
-                    
-      
-            }
-
-
+            balleCopie.GetComponent<Rigidbody>().linearVelocity = direction * vitesseBalle;
         }
-        else if (CameraManager.isFirstPersonCamera == false)
+        else
         {
             particuleBalle.SetActive(true);
             GetComponent<AudioSource>().PlayOneShot(gunShotAudioSource);
+
             GameObject balleCopie = Instantiate(balle);
             balleCopie.transform.position = balle.transform.position;
             balleCopie.transform.rotation = balle.transform.rotation;
@@ -117,16 +81,11 @@ public class TirScript_CreationBalle : MonoBehaviour
             balleCopie.GetComponent<Rigidbody>().linearVelocity = transform.forward * vitesseBalle;
         }
 
-
         statsJoueur.nombreMunition--;
         statsJoueur.MettreAJourAffichageMunition();
     }
+
     //----------------------------------------------------------------------------------------------
-
-
-    /*
-     * Fonction ActiveTir(). Réactive la capacité de tirer.
-     */
 
     void ActiveTir()
     {
@@ -138,16 +97,13 @@ public class TirScript_CreationBalle : MonoBehaviour
     IEnumerator MeleeAttack()
     {
         peutAttaquer = false;
-
-        // Déclenche l'animation d'attaque
         joueurAnimator.SetTrigger("MeleeTrigger");
 
-        // Active l’arme
         meleeWeapon.SetActive(true);
-
-        // délai
         yield return new WaitForSeconds(1f);
+
         meleeWeapon.SetActive(false);
         peutAttaquer = true;
     }
-}       
+}
+     

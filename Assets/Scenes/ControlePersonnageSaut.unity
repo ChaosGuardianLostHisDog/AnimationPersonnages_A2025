@@ -1824,7 +1824,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1.1, y: 1.6, z: 0.25}
-  m_Center: {x: 0, y: 0, z: 0.075}
+  m_Center: {x: 0, y: 0, z: 0.05}
 --- !u!1 &317603503
 GameObject:
   m_ObjectHideFlags: 0
@@ -4069,7 +4069,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.4113207, g: 0.35932353, b: 0.35932353, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -5698,7 +5698,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7176108935439748285, guid: 4a14df3a625a926419729a4931a13c5f, type: 3}
       propertyPath: m_TagString
-      value: Untagged
+      value: Shield
       objectReference: {fileID: 0}
     - target: {fileID: 7556329489791505927, guid: 4a14df3a625a926419729a4931a13c5f, type: 3}
       propertyPath: m_LocalScale.x
@@ -6694,6 +6694,26 @@ PrefabInstance:
       propertyPath: personnage
       value: 
       objectReference: {fileID: 1671349923}
+    - target: {fileID: -7395177442273493069, guid: b16b442858cbf4a05936f05ff35a7d73, type: 3}
+      propertyPath: sphereRadius
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7395177442273493069, guid: b16b442858cbf4a05936f05ff35a7d73, type: 3}
+      propertyPath: debugDrawSphere
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7395177442273493069, guid: b16b442858cbf4a05936f05ff35a7d73, type: 3}
+      propertyPath: debugSphereCast
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7395177442273493069, guid: b16b442858cbf4a05936f05ff35a7d73, type: 3}
+      propertyPath: detectionDistance
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: -7395177442273493069, guid: b16b442858cbf4a05936f05ff35a7d73, type: 3}
+      propertyPath: detectLayerMask.m_Bits
+      value: 64
+      objectReference: {fileID: 0}
     - target: {fileID: 7733248634543216224, guid: b16b442858cbf4a05936f05ff35a7d73, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.08
@@ -7095,7 +7115,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: f848f5d6b4dad4f94b18b35aec099b07, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.45
+      value: -9.44
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f848f5d6b4dad4f94b18b35aec099b07, type: 3}
       propertyPath: m_LocalPosition.y
@@ -7103,7 +7123,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f848f5d6b4dad4f94b18b35aec099b07, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 13.1
+      value: 0.73
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: f848f5d6b4dad4f94b18b35aec099b07, type: 3}
       propertyPath: m_LocalRotation.w
@@ -7307,9 +7327,6 @@ MonoBehaviour:
   spawnOffset: 0.5
   gunShotAudioSource: {fileID: 8300000, guid: fa7f046ce321d4021b5e753bf1152916, type: 3}
   statsJoueur: {fileID: 1671349933}
-  layerCollision:
-    serializedVersion: 2
-    m_Bits: 64
   meleeWeapon: {fileID: 311392258}
   joueurAnimator: {fileID: 311392264}
   dureeAttaqueMelee: 0.5
@@ -8330,7 +8347,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4693092928872609879, guid: 251d7f6242f516d4ab2469a5dcd8e9fc, type: 3}
       propertyPath: m_TagString
-      value: Untagged
+      value: Shield
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8519,7 +8536,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!54 &2124766112
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -9900,7 +9917,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &399528754713254160
 GameObject:
   m_ObjectHideFlags: 0
@@ -12309,7 +12326,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &3460853346778355963
 GameObject:
   m_ObjectHideFlags: 0
@@ -13280,7 +13297,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4777401778005700063
 Transform:
   m_ObjectHideFlags: 0
@@ -15928,7 +15945,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &8873995702475052526
 Transform:
   m_ObjectHideFlags: 0
@@ -16154,7 +16171,7 @@ MonoBehaviour:
   isAttacking: 0
   attackNumber: 0
   DelaiAttaque: 2
-  VieEnnemi: 1250000
+  VieEnnemi: 125
   AttaqueFaible: 10
   AttaqueNormale: 25
   AttaqueForte: 40
@@ -16187,6 +16204,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 946249f741fb7e54aa9228045f48031d, type: 3}
   - {fileID: 8300000, guid: 418b77da1b1f7414aaed91f02a0e5a6a, type: 3}
   - {fileID: 8300000, guid: c4435fad0ad6a834db830425302afe35, type: 3}
+  shieldActive: 0
+  shieldOffDelay: 0.25
 --- !u!54 &9171225989478421707
 Rigidbody:
   m_ObjectHideFlags: 0

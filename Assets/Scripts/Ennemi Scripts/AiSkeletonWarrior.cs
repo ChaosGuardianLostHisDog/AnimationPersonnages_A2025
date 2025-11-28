@@ -42,6 +42,12 @@ public class AiSkeletonWarrior : MonoBehaviour, IGestion2Degats
     public AudioClip[] SonDeath;
     public AudioClip[] SonShiedBlock;
 
+    [Header("Shield")]
+    public bool shieldActive = false;    // état actuel du bouclier
+    private int projectilesIncoming = 0; // nombre de projectiles dans la zone de détection
+    public float shieldOffDelay;    // délai avant désactivation après disparition des projectiles
+    private float shieldTimer = 0f;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -72,6 +78,7 @@ public class AiSkeletonWarrior : MonoBehaviour, IGestion2Degats
         {
             anim.SetBool("isRunning", false);
         }
+
         if (distance <= agent.stoppingDistance && isAttacking == false)
         {
             // Attaquer le joueur
@@ -80,6 +87,13 @@ public class AiSkeletonWarrior : MonoBehaviour, IGestion2Degats
             AttackTarget();
             IncomingAttackSound();
         }
+
+        if (shieldActive && projectilesIncoming == 0)
+            {
+                shieldTimer -= Time.deltaTime;
+                if (shieldTimer <= 0f)
+                    anim.SetBool("ShieldUp", false); // Désactivation
+            }
     }
 
     void FaceTarget()
@@ -136,8 +150,18 @@ public class AiSkeletonWarrior : MonoBehaviour, IGestion2Degats
 
     public void BlockProjectileJoueur()
     {
-               print("Projectile Bloqué ! FDP");
+        if (isAttacking == false)
+        {
+            // Active le bouclier et reset le timer
+            shieldActive = true;
+            shieldTimer = shieldOffDelay;
+            // Déclenche l'animation de parade
+            anim.SetTrigger("TriggerShield");
+            anim.SetBool("ShieldUp", true);
+        }
     }
+
+    
 
     public void MouvementStop()
     {
