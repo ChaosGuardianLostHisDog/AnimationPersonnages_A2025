@@ -40,6 +40,15 @@ public class AiRunner : MonoBehaviour, IGestion2Degats
     public AudioClip[] SonIncomingAttack;
     public AudioClip[] SonDeath;
 
+    [Header("Detection Vehicule")]
+    public float detecteurVehicule; // 1 ou 2 comme demandé
+    public float detecteurJoueurSurVehicule;
+
+    // Flags publics pour lire l'état de détection depuis d'autres scripts / l'inspector
+    public bool isVehiculeAhead = false;
+    public bool isPlayerNearby = false;
+    // ---------------------------------------------------------------------
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -56,26 +65,57 @@ public class AiRunner : MonoBehaviour, IGestion2Degats
     // Update is called once per frame
     void Update()
     {
+        DetectionJoueurSurVehicule();
         float distance = Vector3.Distance(target.position, transform.position);
 
         if (distance <= lookRadius)
         {
             agent.SetDestination(target.position);
             // Jouer l'animation du monstre qui cours ver le joueur
-
             anim.SetBool("isRunning", true);
         }
         else
         {
             anim.SetBool("isRunning", false);
         }
-        if (distance <= agent.stoppingDistance && isAttacking == false)
+
+        if (distance <= agent.stoppingDistance && isAttacking == false || isVehiculeAhead == true && isPlayerNearby == true && isAttacking == false)
         {
             // Attaquer le joueur
             // Regarder le joueur
             FaceTarget();
             AttackTarget();
             IncomingAttackSound();
+        }
+    }
+
+    void DetectionJoueurSurVehicule()
+    {
+        // Origine légèrement relevée pour éviter d'intersecter le sol
+        Vector3 origine = transform.position + Vector3.up * 0.5f;
+        Vector3 directionRay = transform.forward;
+        // Raycast frontal pour détecter un MeshCollider tagué "vehicule"
+        isVehiculeAhead = false;
+        RaycastHit RayCollisionInfo;
+        if (Physics.Raycast(origine, directionRay, out RayCollisionInfo, detecteurVehicule))
+        {
+            Collider ColliderDect = RayCollisionInfo.collider;
+            if (ColliderDect.CompareTag("vehicule") && ColliderDect is MeshCollider)
+            {
+                // vérifier que le collider est bien un MeshCollider (ou contient un)
+                isVehiculeAhead = true;
+            }
+        }
+       isPlayerNearby = false;
+        Collider[] overlaps = Physics.OverlapSphere(origine, detecteurJoueurSurVehicule);
+        for (int i = 0; i < overlaps.Length; i++)
+        {
+            Collider playerCollider = overlaps[i];
+            if (playerCollider.CompareTag("Player"))
+            {
+                isPlayerNearby = true;
+                break;
+            }
         }
     }
 
@@ -90,7 +130,6 @@ public class AiRunner : MonoBehaviour, IGestion2Degats
     void AttackTarget()
     {
         isAttacking = true;
-
 
         // Choisir un nombre aléatoire entre 1 et 3
         int attackNumber = UnityEngine.Random.Range(1, 4); // 1, 2 ou 3
@@ -120,7 +159,6 @@ public class AiRunner : MonoBehaviour, IGestion2Degats
         anim.SetTrigger(triggerName);
     }
 
-
     public void MouvementStop()
     {
         Debug.Log("Attaque Effectuer !");
@@ -138,12 +176,12 @@ public class AiRunner : MonoBehaviour, IGestion2Degats
         if (other.gameObject.CompareTag("ProjectilePlayer"))
         {
             VieEnnemi -= 50;
-        //Le monstre prend du knockback, il est repoussé en arrière lorsqu'il est touché par l'attaque au corps à corps du joueur
-        rb.linearVelocity = -transform.forward * 10f + Vector3.up * 2f;
-        if (VieEnnemi <= 0)
-        {
-            Animation2Mort();
-        }
+            //Le monstre prend du knockback, il est repoussé en arrière lorsqu'il est touché par l'attaque au corps à corps du joueur
+            rb.linearVelocity = -transform.forward * 10f + Vector3.up * 2f;
+            if (VieEnnemi <= 0)
+            {
+                Animation2Mort();
+            }
         }
     }
 
@@ -166,37 +204,37 @@ public class AiRunner : MonoBehaviour, IGestion2Degats
 
     void Animation2Mort()
     {
-    int deathNumber = UnityEngine.Random.Range(1, 4); // 1, 2, ou 3
-    string deathName;
+        int deathNumber = UnityEngine.Random.Range(1, 4); // 1, 2, ou 3
+        string deathName;
 
-    switch (deathNumber)
-    {
-        case 1:
-            deathName = "Death1";
-            break;
-        case 2:
-            deathName = "Death2";
-            break;
-        case 3:
-            deathName = "Death3";
-            break;
-        default:
-            deathName = "Death1";
-            break;
+        switch (deathNumber)
+        {
+            case 1:
+                deathName = "Death1";
+                break;
+            case 2:
+                deathName = "Death2";
+                break;
+            case 3:
+                deathName = "Death3";
+                break;
+            default:
+                deathName = "Death1";
+                break;
+        }
+
+        anim.SetTrigger(deathName);
+        //  Désactive les colliders du monstre
+        col.enabled = false;
+        //  Désactive le NavMeshAgent pour éviter warnings + arrêter mouvement
+        agent.enabled = false;
+        //  Désactive ce script d’IA pour empêcher toute logique
+        this.enabled = false;
+        // Détruire le corps après 15 secondes
+        DeathSound();
+        flame.SetActive(false);
+        Destroy(gameObject, 30f);
     }
-
-    anim.SetTrigger(deathName);
-    //  Désactive les colliders du monstre
-    col.enabled = false;
-    //  Désactive le NavMeshAgent pour éviter warnings + arrêter mouvement
-    agent.enabled = false;
-    //  Désactive ce script d’IA pour empêcher toute logique
-    this.enabled = false;
-    // Détruire le corps après 15 secondes
-    DeathSound();
-    flame.SetActive(false);
-    Destroy(gameObject, 30f);
-}
 
     IEnumerator IdleSoundBoucle()
     {

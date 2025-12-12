@@ -9,16 +9,18 @@ TagManager:
   - MeleePlayer
   - Shield
   - SkeletonWarrior
+  - PlayerProjectile
+  - vehicule
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
   - skeletonwarrior
-  - 
-  - 
+  - Ennemy
+  - MurInvisible
   - 
   - 
   - 

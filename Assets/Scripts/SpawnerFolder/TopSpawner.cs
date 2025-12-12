@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class TopSpawner : MonoBehaviour
 {
-    //CE SCRIPT EST GRANDEMENT INSPIRER DE CETTE VIDÉO - https://youtu.be/IbiwNnOv5So?si=_wMtpz6Megx8LchY
     public GameObject[] prefabToSpawn;
     public float spawnRate;
 
@@ -18,11 +17,9 @@ public class TopSpawner : MonoBehaviour
     {
         int randomIndex = Random.Range(0, prefabToSpawn.Length);
 
-        Vector3 randomSpawnPosition = new Vector3(
-            Random.Range(-5f, 5f),
-            1f,
-            Random.Range(-5f, 5f)
-        );
-        Instantiate(prefabToSpawn[randomIndex], randomSpawnPosition, Quaternion.identity);
+        // Le monstre apparait sur le position du spawner
+        Vector3 SpawnPosition = transform.position;
+
+        Instantiate(prefabToSpawn[randomIndex], SpawnPosition, Quaternion.identity);
     }
 }

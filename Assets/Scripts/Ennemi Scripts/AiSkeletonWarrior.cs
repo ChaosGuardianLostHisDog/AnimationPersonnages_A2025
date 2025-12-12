@@ -48,6 +48,14 @@ public class AiSkeletonWarrior : MonoBehaviour, IGestion2Degats
     public float shieldOffDelay;    // délai avant désactivation après disparition des projectiles
     private float shieldTimer = 0f;
 
+    [Header("Detection Vehicule")]
+    public float detecteurVehicule; // 1 ou 2 comme demandé
+    public float detecteurJoueurSurVehicule;
+
+    // Flags publics pour lire l'état de détection depuis d'autres scripts / l'inspector
+    public bool isVehiculeAhead = false;
+    public bool isPlayerNearby = false;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -64,7 +72,7 @@ public class AiSkeletonWarrior : MonoBehaviour, IGestion2Degats
     // Update is called once per frame
     void Update()
     {
-
+        DetectionJoueurSurVehicule();
         float distance = Vector3.Distance(target.position, transform.position);
 
         if (distance <= lookRadius)
@@ -79,7 +87,7 @@ public class AiSkeletonWarrior : MonoBehaviour, IGestion2Degats
             anim.SetBool("isRunning", false);
         }
 
-        if (distance <= agent.stoppingDistance && isAttacking == false)
+        if (distance <= agent.stoppingDistance && isAttacking == false || isVehiculeAhead == true && isPlayerNearby == true && isAttacking == false)
         {
             // Attaquer le joueur
             // Regarder le joueur
@@ -89,13 +97,43 @@ public class AiSkeletonWarrior : MonoBehaviour, IGestion2Degats
         }
 
         if (shieldActive && projectilesIncoming == 0)
-            {
-                shieldTimer -= Time.deltaTime;
-                if (shieldTimer <= 0f)
-                    anim.SetBool("ShieldUp", false); // Désactivation
-            }
+        {
+            shieldTimer -= Time.deltaTime;
+            if (shieldTimer <= 0f)
+                anim.SetBool("ShieldUp", false); // Désactivation
+        }
     }
 
+    void DetectionJoueurSurVehicule()
+    {
+        // Origine légèrement relevée pour éviter d'intersecter le sol
+        Vector3 origine = transform.position + Vector3.up * 0.5f;
+        Vector3 directionRay = transform.forward;
+
+        // Raycast frontal pour détecter un MeshCollider tagué "vehicule"
+        isVehiculeAhead = false;
+        RaycastHit RayCollisionInfo;
+        if (Physics.Raycast(origine, directionRay, out RayCollisionInfo, detecteurVehicule))
+        {
+            Collider ColliderDect = RayCollisionInfo.collider;
+            if (ColliderDect.CompareTag("vehicule") && ColliderDect is MeshCollider)
+            {
+                // vérifier que le collider est bien un MeshCollider (ou contient un)
+                isVehiculeAhead = true;
+            }
+        }
+       isPlayerNearby = false;
+        Collider[] overlaps = Physics.OverlapSphere(origine, detecteurJoueurSurVehicule);
+        for (int i = 0; i < overlaps.Length; i++)
+        {
+            Collider playerCollider = overlaps[i];
+            if (playerCollider.CompareTag("Player"))
+            {
+                isPlayerNearby = true;
+                break;
+            }
+        }
+    }
     void FaceTarget()
     {
         // Tourner vers le joueur, il doit le regarder avec le moins de delai possible
