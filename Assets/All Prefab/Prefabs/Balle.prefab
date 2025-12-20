@@ -14,9 +14,9 @@ GameObject:
   - component: {fileID: 7733248634543216236}
   - component: {fileID: 7733248634543216234}
   - component: {fileID: -7395177442273493069}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Balle
-  m_TagString: PlayerProjectile
+  m_TagString: ProjectilePlayer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -30,9 +30,9 @@ Transform:
   m_GameObject: {fileID: 7733248634543216225}
   serializedVersion: 2
   m_LocalRotation: {x: -0.0000000481159, y: -0, z: 0.0000000037596717, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.049999975, y: 0.049999967, z: 0.5}
-  m_ConstrainProportionsScale: 0
+  m_LocalPosition: {x: 0, y: -0.02, z: 0.439}
+  m_LocalScale: {x: 0.08, y: 0.08, z: 0.32000002}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -152,5 +152,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc8632ba85cdf0542960b0f01dc5a1ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BalleScript
-  impactTir: {fileID: 0}
+  impactTir: {fileID: 100000, guid: ef39ae7291c751249b296f00bf6fb042, type: 3}
   personnage: {fileID: 0}
+  sphereRadius: 1
+  detectionDistance: 5
+  detectLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  debugSphereCast: 1

@@ -1,35 +1,34 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class FirstPersonView : MonoBehaviour {
-    // Sensibilité de la souris
+public class FirstPersonView : MonoBehaviour
+{
+    [Header("Sensibilité")]
     public float mouseSensitivity = 100f;
-    // Référence au corps du joueur pour la rotation horizontale
+
+    [Header("Référence joueur")]
     public Transform playerBody;
 
-    // Rotation verticale
-    float xRotation = 0f;
-    // Vue en Fps en activant cette camera
+    private float xRotation = 0f;
+
     void Start()
     {
-
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
-        
     }
 
     void Update()
     {
-        // Mouvement de la souris
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+        float mouseX = Input.GetAxisRaw("Mouse X");
+        float mouseY = Input.GetAxisRaw("Mouse Y");
 
-        // Appliquer la rotation
+        float rotation = mouseSensitivity * Time.deltaTime;
+
+        // Rotation verticale (caméra)
+        xRotation -= mouseY * rotation;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
         transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-        playerBody.Rotate(Vector3.up * mouseX);
-        
+
+        // Rotation horizontale (corps)
+        playerBody.Rotate(Vector3.up * mouseX * rotation);
     }
 }

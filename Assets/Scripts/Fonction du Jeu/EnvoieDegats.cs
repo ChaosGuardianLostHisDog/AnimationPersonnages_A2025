@@ -6,12 +6,8 @@ public class EnvoieDegats : MonoBehaviour
 
     void Start()
     {
-        // Cherche dans le parent un composant qui implémente IDamageDealer
+        // Cherche dans le parent un composant qui implémente IGestion2Degats
         monster = GetComponentInParent<IGestion2Degats>();
-        if (monster == null)
-        {
-            Debug.LogWarning("EnvoieDegats: Aucun IDamageDealer trouvé sur le parent !");
-        }
     }
 
     // Détecte les collisions avec le joueur sans le Trigger
@@ -20,10 +16,7 @@ public class EnvoieDegats : MonoBehaviour
         if (other.CompareTag("Player") && monster != null)
         {
             DeplacementPersoSaut player = other.GetComponent<DeplacementPersoSaut>();
-            if (player != null)
-            {
-                player.MiseAJourDeLaVieDuJoueur(monster.GetDamage());
-            }
+            player.MiseAJourDeLaVieDuJoueur(monster.GetDamage());
         }
     }
 }

@@ -4,4 +4,5 @@ using UnityEngine;
 public interface IGestion2Degats
 {
     float GetDamage(); // Retourne les dégâts actuels
+    
 }

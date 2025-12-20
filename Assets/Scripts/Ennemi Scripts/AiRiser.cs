@@ -1,4 +1,4 @@
-using System;
+
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
@@ -21,6 +21,8 @@ public class AiRiser : MonoBehaviour, IGestion2Degats
     public float GetDamage() => currentDamage;
 
     [Header("Ennemi Death Value")]
+    [SerializeField] private StatsJoueur statsJoueur;
+    public float points;
     public int deathNumber;
     public GameObject flame;
 
@@ -41,12 +43,13 @@ public class AiRiser : MonoBehaviour, IGestion2Degats
     public AudioClip[] SonIncomingAttack;
     public AudioClip[] SonResurection;
     public AudioClip[] SonDeath;
+    public AudioClip[] sonGetMunition;
 
     [Header("Detection Vehicule")]
-    public float detecteurVehicule; // 1 ou 2 comme demandé
+    public float detecteurVehicule;
     public float detecteurJoueurSurVehicule;
 
-    // Flags publics pour lire l'état de détection depuis d'autres scripts / l'inspector
+
     public bool isVehiculeAhead = false;
     public bool isPlayerNearby = false;
 
@@ -59,34 +62,41 @@ public class AiRiser : MonoBehaviour, IGestion2Degats
         agent = GetComponent<NavMeshAgent>();
         audioSource = GetComponent<AudioSource>();
         target = PlayerManager.instance.player.transform;
-
+        StartCoroutine(VerifieDistanceJoueur());
         StartCoroutine(IdleSoundBoucle());
     }
 
     // Update is called once per frame
-    void Update()
+    private IEnumerator VerifieDistanceJoueur()
     {
-        DetectionJoueurSurVehicule();
-        float distance = Vector3.Distance(target.position, transform.position);
+        const float intervalle = 0.25f; // 4 fois par seconde
 
-        if (distance <= lookRadius)
+        while (true)
         {
-            agent.SetDestination(target.position);
-            // Jouer l'animation du monstre qui cours ver le joueur
+            DetectionJoueurSurVehicule();
+            float distance = Vector3.Distance(target.position, transform.position);
 
-            anim.SetBool("isRunning", true);
-        }
-        else
-        {
-            anim.SetBool("isRunning", false);
-        }
-        if (distance <= agent.stoppingDistance && isAttacking == false || isVehiculeAhead == true && isPlayerNearby == true && isAttacking == false)
-        {
-            // Attaquer le joueur
-            // Regarder le joueur
-            FaceTarget();
-            AttackTarget();
-            IncomingAttackSound();
+            if (distance <= lookRadius)
+            {
+                agent.SetDestination(target.position);
+                // Jouer l'animation du monstre qui cours ver le joueur
+
+                anim.SetBool("isRunning", true);
+            }
+            else
+            {
+                anim.SetBool("isRunning", false);
+            }
+            if (distance <= agent.stoppingDistance && isAttacking == false || isVehiculeAhead == true && isPlayerNearby == true && isAttacking == false)
+            {
+                // Attaquer le joueur
+                // Regarder le joueur
+                FaceTarget();
+                AttackTarget();
+                IncomingAttackSound();
+            }
+
+            yield return new WaitForSeconds(intervalle);
         }
     }
 
@@ -108,7 +118,7 @@ public class AiRiser : MonoBehaviour, IGestion2Degats
                 isVehiculeAhead = true;
             }
         }
-       isPlayerNearby = false;
+        isPlayerNearby = false;
         Collider[] overlaps = Physics.OverlapSphere(origine, detecteurJoueurSurVehicule);
         for (int i = 0; i < overlaps.Length; i++)
         {
@@ -135,7 +145,7 @@ public class AiRiser : MonoBehaviour, IGestion2Degats
 
 
         // Choisir un nombre aléatoire entre 1 et 3
-        int attackNumber = UnityEngine.Random.Range(1, 4); // 1, 2 ou 3
+        int attackNumber = Random.Range(1, 4); // 1, 2 ou 3
         string triggerName;
 
         switch (attackNumber)
@@ -172,43 +182,56 @@ public class AiRiser : MonoBehaviour, IGestion2Degats
     {
         Debug.Log("Attaque Réinistialiser");
         isAttacking = false;
-        agent.speed = 6f;
+        agent.speed = 8.5f;
     }
 
     private void OnCollisionEnter(Collision other)
     {
+        // On récupère le joueur
+        DeplacementPersoSaut player = FindFirstObjectByType<DeplacementPersoSaut>();
+
         if (other.gameObject.CompareTag("ProjectilePlayer"))
         {
-            VieEnnemi -= 50;
-        //Le monstre prend du knockback, il est repoussé en arrière lorsqu'il est touché par l'attaque au corps à corps du joueur
-        rb.linearVelocity = -transform.forward * 10f + Vector3.up * 2f;
-        if (VieEnnemi <= 0)
-        {
-            Animation2Mort();
-        }
+            VieEnnemi -= player.DegatJoueurDistance;
+    
+            // Knockback
+            rb.linearVelocity = -transform.forward * 10f + Vector3.up * 2f;
+    
+            if (VieEnnemi <= 0)
+            {
+                Animation2Mort();
+            }
+    
+            Destroy(other.gameObject);
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
+        DeplacementPersoSaut player = FindFirstObjectByType<DeplacementPersoSaut>();
         if (other.gameObject.CompareTag("MeleePlayer"))
         {
+            VieEnnemi -= player.DegatJoueurMelee;
+    
 
-            VieEnnemi -= 20;
-            //Le monstre prend du knockback, il est repoussé en arrière lorsqu'il est touché par l'attaque au corps à corps du joueur
-            rb.linearVelocity = -transform.forward * 10f + Vector3.up * 2f;
-
+            rb.linearVelocity = -transform.forward * 6f + Vector3.up * 1.5f;
+    
             if (VieEnnemi <= 0)
             {
                 Animation2Mort();
             }
-
         }
     }
 
     void Animation2Mort()
     {
-        int deathNumber = UnityEngine.Random.Range(1, 3); // 1, 2, ou 3;
+        if (Random.Range(0, 2) == 1)
+        {
+            statsJoueur.nombreMunition++;
+            statsJoueur.MettreAJourAffichageMunition();
+            SoundMunitionGet();
+        }
+        int deathNumber = Random.Range(1, 3); // 1, 2, ou 3;
         if (deathNumber == 1 && ResurectionActive == true)
         {
             // Mort Réssucitée
@@ -225,7 +248,8 @@ public class AiRiser : MonoBehaviour, IGestion2Degats
         else
         {
             // Mort Permanente
-
+            // Ajoute les points seulement si le ScoreController existe
+            ScoreController.AddPoints((int)points);
             anim.SetTrigger("Death");
             col.enabled = false;
             agent.enabled = false;
@@ -235,7 +259,7 @@ public class AiRiser : MonoBehaviour, IGestion2Degats
             Destroy(gameObject, 30f);
         }
         flame.SetActive(false);
-    }   
+    }
 
     public void resurectionActive()
     {
@@ -256,22 +280,22 @@ public class AiRiser : MonoBehaviour, IGestion2Degats
     {
         while (true)
         {
-            int delay = UnityEngine.Random.Range(1, 3); // temps aléatoire entre 6 et 10 secondes
+            int delay = Random.Range(1, 3); // temps aléatoire entre 6 et 10 secondes
             yield return new WaitForSeconds(delay);
 
             if (!this.enabled) yield break;
             if (isAttacking) continue;
 
-            int index = UnityEngine.Random.Range(0, SonIdle.Length);
-            audioSource.pitch = UnityEngine.Random.Range(0.25f, 0.85f);
+            int index = Random.Range(0, SonIdle.Length);
+            audioSource.pitch = Random.Range(0.25f, 0.85f);
             audioSource.volume = 0.5f;
             audioSource.PlayOneShot(SonIdle[index]);
         }
     }
-    
+
     public void ResurectionSound()
     {
-        int index = UnityEngine.Random.Range(0, SonResurection.Length);
+        int index = Random.Range(0, SonResurection.Length);
         audioSource.pitch = 1f;
         audioSource.volume = 1f;
         audioSource.PlayOneShot(SonResurection[index]);
@@ -279,39 +303,42 @@ public class AiRiser : MonoBehaviour, IGestion2Degats
 
     public void DeathSound()
     {
-        int index = UnityEngine.Random.Range(0, SonDeath.Length);
-        audioSource.pitch = UnityEngine.Random.Range(0.5f, 1f);
+        int index = Random.Range(0, SonDeath.Length);
+        audioSource.pitch = Random.Range(0.5f, 1f);
         audioSource.volume = 1f;
         audioSource.PlayOneShot(SonDeath[index]);
     }
 
     public void IncomingAttackSound()
     {
-        int index = UnityEngine.Random.Range(0, SonIncomingAttack.Length);
-        audioSource.pitch = UnityEngine.Random.Range(0.75f, 1.25f);
+        int index = Random.Range(0, SonIncomingAttack.Length);
+        audioSource.pitch = Random.Range(0.75f, 1.25f);
         audioSource.volume = 0.75f;
         audioSource.PlayOneShot(SonIncomingAttack[index]);
     }
 
     public void RandomSweepAudio()
     {
-        int index = UnityEngine.Random.Range(0, SonAttaque.Length);
-        audioSource.pitch = UnityEngine.Random.Range(0.5f, 1f);
+        int index = Random.Range(0, SonAttaque.Length);
+        audioSource.pitch = Random.Range(0.5f, 1f);
         audioSource.volume = 0.5f;
         audioSource.PlayOneShot(SonAttaque[index]);
     }
 
     public void RandomHeavyImpactAudio()
     {
-        int index = UnityEngine.Random.Range(0, SonAttaqueLourde.Length);
+        int index = Random.Range(0, SonAttaqueLourde.Length);
         audioSource.volume = 1;
-        audioSource.pitch = UnityEngine.Random.Range(0.5f, 1f);
+        audioSource.pitch = Random.Range(0.5f, 1f);
         audioSource.PlayOneShot(SonAttaqueLourde[index]);
     }
 
-    void OnDrawGizmosSelected()
+    public void SoundMunitionGet()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, lookRadius);
+        int index = Random.Range(0, sonGetMunition.Length);
+        audioSource.pitch = Random.Range(0.5f, 1f);
+        audioSource.volume = 1;
+        audioSource.spatialBlend = 0;
+        audioSource.PlayOneShot(sonGetMunition[index]);
     }
 }

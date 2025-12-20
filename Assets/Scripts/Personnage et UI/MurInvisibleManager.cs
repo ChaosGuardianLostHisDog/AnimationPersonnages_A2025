@@ -21,8 +21,6 @@ public class MurInvisibleManager : MonoBehaviour
         // Le mur NE bloque PAS les ennemis
         Physics.IgnoreLayerCollision(wallLayer, enemyLayer, true);
         Physics.IgnoreLayerCollision(wallLayer, skeletonWarriorLayer, true);
-
-        Debug.Log("Layer collisions configurées : Mur bloque le joueur, ennemis passent à travers");
     }
 }
 

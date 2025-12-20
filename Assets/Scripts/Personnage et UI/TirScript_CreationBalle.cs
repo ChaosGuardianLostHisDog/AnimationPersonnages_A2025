@@ -13,8 +13,8 @@ public class TirScript_CreationBalle : MonoBehaviour
     public float vitesseBalle;
 
     [SerializeField] private Transform Firepoint;
-    [SerializeField] private float spawnOffset = 5f;
     [SerializeField] private AudioClip gunShotAudioSource;
+    [SerializeField] private AudioClip SweepAudioSource;
     [SerializeField] private StatsJoueur statsJoueur;
 
     private bool peutTirer;
@@ -24,8 +24,6 @@ public class TirScript_CreationBalle : MonoBehaviour
     public Animator joueurAnimator;
     public float dureeAttaqueMelee = 1f;
     private bool peutAttaquer = true;
-
-    private Transform lastSpawnBase;   // pour le debug gizmos
 
     //----------------------------------------------------------------------------------------------
     void Start()
@@ -52,22 +50,25 @@ public class TirScript_CreationBalle : MonoBehaviour
     {
         peutTirer = false;
         Invoke("ActiveTir", 0.1f);
-
         if (CameraManager.isFirstPersonCamera == true)
         {
             particuleBalle.SetActive(true);
             GetComponent<AudioSource>().PlayOneShot(gunShotAudioSource);
 
-            Transform spawnBase = Firepoint != null ? Firepoint : (Camera.main != null ? Camera.main.transform : transform);
-            lastSpawnBase = spawnBase; // pour afficher les gizmos
+            // Base de tir unique
+            Transform spawnBase = Firepoint != null ? Firepoint : transform;
 
+            Vector3 spawnPos = spawnBase.position;
             Vector3 direction = spawnBase.forward;
-            Vector3 spawnPos = spawnBase.position + direction * spawnOffset;
-            Quaternion spawnRot = spawnBase.rotation;
-            GameObject balleCopie = Instantiate(balle, spawnPos, spawnRot);
 
-            balleCopie.SetActive(true);
+            GameObject balleCopie = Instantiate(
+                balle,
+                spawnPos,
+                Quaternion.LookRotation(direction)
+            );
+
             balleCopie.GetComponent<Rigidbody>().linearVelocity = direction * vitesseBalle;
+            balleCopie.SetActive(true);
         }
         else
         {
@@ -80,25 +81,24 @@ public class TirScript_CreationBalle : MonoBehaviour
             balleCopie.SetActive(true);
             balleCopie.GetComponent<Rigidbody>().linearVelocity = transform.forward * vitesseBalle;
         }
-
         statsJoueur.nombreMunition--;
         statsJoueur.MettreAJourAffichageMunition();
     }
+
 
     //----------------------------------------------------------------------------------------------
 
     void ActiveTir()
     {
         peutTirer = true;
-        if (particuleBalle != null)
-            particuleBalle.SetActive(false);
+        particuleBalle.SetActive(false);
     }
 
     IEnumerator MeleeAttack()
     {
         peutAttaquer = false;
         joueurAnimator.SetTrigger("MeleeTrigger");
-
+        GetComponent<AudioSource>().PlayOneShot(SweepAudioSource);
         meleeWeapon.SetActive(true);
         yield return new WaitForSeconds(1f);
 

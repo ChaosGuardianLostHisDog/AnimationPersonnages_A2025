@@ -4,7 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class AiVehicule: MonoBehaviour
+public class AiVehicule : MonoBehaviour
 {
     [Header("Info Attack")]
     public GameObject ExplosionParticule;
@@ -18,7 +18,7 @@ public class AiVehicule: MonoBehaviour
     [Header("Info Explosion Mort")]
     public float AoEDistance = 7.5f;         // rayon de l'explosion
     public float DegatExplosionMax = 250f;    // dégâts max au centre
-    public LayerMask explosionLayerMask = ~0;  // qui peut être touché (assignable dans l'inspector)
+    public LayerMask explosionLayerMask = ~0;  // qui peut être touché
 
     [Header("Audio du Monstre")]
     public AudioSource audioSource;
@@ -122,7 +122,7 @@ public class AiVehicule: MonoBehaviour
     {
         if (mesh == null || mesh.material == null) return;
 
-        // Instancie un matériel unique pour cet objet (évite d'assombrir TOUS les ennemis)
+        // Instancie un matériel unique pour cet objet pour évité d'assombrir tous les ennemis
         Material mat = mesh.material;
 
         if (mat.HasProperty("_Color"))
@@ -132,18 +132,5 @@ public class AiVehicule: MonoBehaviour
             c.a = 1f;
             mat.SetColor("_Color", c);
         }
-        else if (mat.HasProperty("_BaseColor"))
-        {
-            Color c = mat.GetColor("_BaseColor");
-            c *= factor;
-            c.a = 1f;
-            mat.SetColor("_BaseColor", c);
-        }
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, AoEDistance);
     }
 }

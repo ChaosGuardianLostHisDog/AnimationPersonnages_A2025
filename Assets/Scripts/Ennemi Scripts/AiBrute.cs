@@ -20,6 +20,8 @@ public class AiBrute : MonoBehaviour, IGestion2Degats
     public float GetDamage() => currentDamage;
 
     [Header("Ennemi Death Value")]
+    [SerializeField] private StatsJoueur statsJoueur;
+    public float points;
     public int deathNumber;
 
     [Header("Look Radius et AI")]
@@ -38,12 +40,13 @@ public class AiBrute : MonoBehaviour, IGestion2Degats
     public AudioClip[] SonAttaqueLourde;
     public AudioClip[] SonIncomingAttack;
     public AudioClip[] SonDeath;
+    public AudioClip[] sonGetMunition;
 
     [Header("Detection Vehicule")]
-    public float detecteurVehicule; // 1 ou 2 comme demandé
+    public float detecteurVehicule;
     public float detecteurJoueurSurVehicule;
 
-    // Flags publics pour lire l'état de détection depuis d'autres scripts / l'inspector
+
     public bool isVehiculeAhead = false;
     public bool isPlayerNearby = false;
 
@@ -57,28 +60,39 @@ public class AiBrute : MonoBehaviour, IGestion2Degats
         target = PlayerManager.instance.player.transform;
 
         StartCoroutine(IdleSoundBoucle());
+        StartCoroutine(VerifieDistanceJoueur());
     }
 
-    void Update()
+    private IEnumerator VerifieDistanceJoueur()
     {
-        DetectionJoueurSurVehicule();
-        float distance = Vector3.Distance(target.position, transform.position);
+        const float intervalle = 0.25f; // 4 fois par seconde
 
-        if (distance <= lookRadius)
+        while (true)
         {
-            agent.SetDestination(target.position);
-            anim.SetBool("isRunning", true);
-        }
-        else
-        {
-            anim.SetBool("isRunning", false);
-        }
+            DetectionJoueurSurVehicule();
+            float distance = Vector3.Distance(target.position, transform.position);
 
-        if (distance <= agent.stoppingDistance && isAttacking == false || isVehiculeAhead == true && isPlayerNearby == true && isAttacking == false)
-        {
-            FaceTarget();
-            AttackTarget();
-            IncomingAttackSound();
+            if (distance <= lookRadius)
+            {
+                agent.SetDestination(target.position);
+                // Jouer l'animation du monstre qui cours ver le joueur
+
+                anim.SetBool("isRunning", true);
+            }
+            else
+            {
+                anim.SetBool("isRunning", false);
+            }
+            if (distance <= agent.stoppingDistance && isAttacking == false || isVehiculeAhead == true && isPlayerNearby == true && isAttacking == false)
+            {
+                // Attaquer le joueur
+                // Regarder le joueur
+                FaceTarget();
+                AttackTarget();
+                IncomingAttackSound();
+            }
+
+            yield return new WaitForSeconds(intervalle);
         }
     }
 
@@ -100,7 +114,7 @@ public class AiBrute : MonoBehaviour, IGestion2Degats
                 isVehiculeAhead = true;
             }
         }
-       isPlayerNearby = false;
+        isPlayerNearby = false;
         Collider[] overlaps = Physics.OverlapSphere(origine, detecteurJoueurSurVehicule);
         for (int i = 0; i < overlaps.Length; i++)
         {
@@ -165,30 +179,39 @@ public class AiBrute : MonoBehaviour, IGestion2Degats
     public void RetablirMouvement()
     {
         isAttacking = false;
-        agent.speed = 1f;
+        agent.speed = 4f;
     }
 
     private void OnCollisionEnter(Collision other)
     {
+        // On récupère le joueur
+        DeplacementPersoSaut player = FindFirstObjectByType<DeplacementPersoSaut>();
         if (other.gameObject.CompareTag("ProjectilePlayer"))
         {
-           VieEnnemi -= 50;
-        //Le monstre prend du knockback, il est repoussé en arrière lorsqu'il est touché par l'attaque au corps à corps du joueur
-        rb.linearVelocity = -transform.forward * 10f + Vector3.up * 2f;
-        if (VieEnnemi <= 0)
-        {
-            Animation2Mort();
-        }
+            VieEnnemi -= player.DegatJoueurDistance;
+    
+            // Knockback
+            rb.linearVelocity = -transform.forward * 10f + Vector3.up * 2f;
+    
+            if (VieEnnemi <= 0)
+            {
+                Animation2Mort();
+            }
+    
+            Destroy(other.gameObject);
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
+        DeplacementPersoSaut player = FindFirstObjectByType<DeplacementPersoSaut>();
         if (other.gameObject.CompareTag("MeleePlayer"))
         {
-            VieEnnemi -= 20;
-            rb.linearVelocity = -transform.forward * 10f + Vector3.up * 2f;
+            VieEnnemi -= player.DegatJoueurMelee;
+    
 
+            rb.linearVelocity = -transform.forward * 6f + Vector3.up * 1.5f;
+    
             if (VieEnnemi <= 0)
             {
                 Animation2Mort();
@@ -198,6 +221,14 @@ public class AiBrute : MonoBehaviour, IGestion2Degats
 
     void Animation2Mort()
     {
+        if (Random.Range(0, 2) == 1)
+        {
+            statsJoueur.nombreMunition++;
+            statsJoueur.MettreAJourAffichageMunition();
+            SoundMunitionGet();
+        }
+        // Ajoute les points seulement si le ScoreController existe
+        ScoreController.AddPoints((int)points);
         int deathNumber = Random.Range(1, 4); // 1, 2, ou 3
         string deathName;
         switch (deathNumber)
@@ -248,16 +279,16 @@ public class AiBrute : MonoBehaviour, IGestion2Degats
 
     public void DeathSound()
     {
-            int index = Random.Range(0, SonDeath.Length);
-            audioSource.pitch = 1f;
-            audioSource.PlayOneShot(SonDeath[index]);
+        int index = Random.Range(0, SonDeath.Length);
+        audioSource.pitch = 1f;
+        audioSource.PlayOneShot(SonDeath[index]);
     }
 
     public void IncomingAttackSound()
     {
-            int index = Random.Range(0, SonIncomingAttack.Length);
-            audioSource.pitch = Random.Range(0.5f, 1f);
-            audioSource.PlayOneShot(SonIncomingAttack[index]);
+        int index = Random.Range(0, SonIncomingAttack.Length);
+        audioSource.pitch = Random.Range(0.5f, 1f);
+        audioSource.PlayOneShot(SonIncomingAttack[index]);
     }
 
     public void RandomSweepAudio()
@@ -270,14 +301,17 @@ public class AiBrute : MonoBehaviour, IGestion2Degats
 
     public void RandomHeavyImpactAudio()
     {
-            int index = Random.Range(0, SonAttaqueLourde.Length);
-            audioSource.pitch = Random.Range(0.5f, 1f);
-            audioSource.PlayOneShot(SonAttaqueLourde[index]);
+        int index = Random.Range(0, SonAttaqueLourde.Length);
+        audioSource.pitch = Random.Range(0.5f, 1f);
+        audioSource.PlayOneShot(SonAttaqueLourde[index]);
+    }
+    public void SoundMunitionGet()
+    {
+        int index = Random.Range(0, sonGetMunition.Length);
+        audioSource.pitch = Random.Range(0.5f, 1f);
+        audioSource.volume = 1;
+        audioSource.spatialBlend = 0;
+        audioSource.PlayOneShot(sonGetMunition[index]);
     }
 
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, lookRadius);
-    }
 }
